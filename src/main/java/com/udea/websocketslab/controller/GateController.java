@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GateController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-// private final SimpMessagingTemplate messagingTemplate;
+        // private final SimpMessagingTemplate messagingTemplate;
 
     public GateController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
@@ -28,11 +28,14 @@ public class GateController {
     @SendTo("/topic/gates")
     public GateInfo updateGateInfo(GateInfo gateInfo) throws Exception
     {
-// Opcionalmente, podrías realizar aquí validaciones o procesos adicionales antes de enviar los datos
+        // Opcionalmente, podrías realizar aquí validaciones o procesos adicionales antes de enviar los datos
         System.out.println("Actualizando información de la puerta: " +
                 gateInfo.getGate());
+
         messagingTemplate.convertAndSend("/topic/gates", gateInfo);
-// Devuelve la información de la puerta a todos los suscriptores
+
+
+        // Devuelve la información de la puerta a todos los suscriptores
         return new GateInfo(
                 HtmlUtils.htmlEscape(gateInfo.getGate()),
                 HtmlUtils.htmlEscape(gateInfo.getFlightNumber()),
@@ -41,26 +44,29 @@ public class GateController {
                 HtmlUtils.htmlEscape(gateInfo.getStatus())
         );
     }
-// Metodo para enviar actualizaciones programáticas (o desde otro servicio)
+
+
+
+    // Metodo para enviar actualizaciones programáticas (o desde otro servicio)
     public void sendUpdate(GateInfo gateInfo) {
-// Envía los datos actualizados de una puerta de embarque a todos los suscriptores en /topic/gates
+    // Envía los datos actualizados de una puerta de embarque a todos los suscriptores en /topic/gates
         messagingTemplate.convertAndSend("/topic/gates", gateInfo);
     }
+
     private Map<String, GateInfo> gateData = new ConcurrentHashMap<>();
+
     // Mtodo para actualizar la información de la puerta de embarque
     @PostMapping("/update")
-    public ResponseEntity<String> updateGate(@RequestBody GateInfo
-                                                     gate) {
-// Actualiza los datos de la puerta de embarque
+    public ResponseEntity<String> updateGate(@RequestBody GateInfo gate) {
+    // Actualiza los datos de la puerta de embarque
         gateData.put(gate.getGate(), gate);
-// Enviar la actualización a todos los suscriptores WebSocket
+    // Enviar la actualización a todos los suscriptores WebSocket
         messagingTemplate.convertAndSend("/topic/gates", gate);
         return ResponseEntity.ok("Puerta de embarque actualizada correctamente");
     }
     @GetMapping("/{gateNumber}")
     public ResponseEntity<GateInfo> getGateInfo(@PathVariable String
                                                         gateNumber) {
-
         GateInfo gate = gateData.get(gateNumber);
         return ResponseEntity.ok(gate);
     }
